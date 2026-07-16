@@ -11,6 +11,14 @@
     <itunes:category text="News"><itunes:category text="Tech News"/></itunes:category>
     <atom:link href="https://rinrinzetetic09-glitch.github.io/ai-news-podcast/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
+      <title>2026-07-17 AIニュース：オープンウェイトモデル「Inkling」始動、声の無断利用に法務省が指針</title>
+      <description>シンキング・マシーンズの新モデルInkling、xAIのGrok Buildオープン化、声優AIの無断利用に法務省が人格権侵害の指針案、ZOZOのAI工数削減効果、全国的なクレカ決済障害など。</description>
+      <pubDate>Fri, 17 Jul 2026 07:00:00 +0900</pubDate>
+      <enclosure url="https://rinrinzetetic09-glitch.github.io/ai-news-podcast/episodes/2026-07-17.mp3" length="4434048" type="audio/mpeg"/>
+      <guid isPermaLink="false">2026-07-17.mp3</guid>
+      <itunes:duration>0:09:14</itunes:duration>
+    </item>
+    <item>
       <title>2026-07-16 AIニュース：オープンウェイトLLM「Inkling」登場、クレカ大規模障害ほか</title>
       <description>Inkling公開、xAIのGrok Buildオープンソース化、Stripe/PayPal買収提案、OpenAI Codex Micro、デロイトのスライド分析、全国クレカ障害など。</description>
       <pubDate>Thu, 16 Jul 2026 07:00:00 +0900</pubDate>
