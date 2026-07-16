@@ -72,13 +72,41 @@ def run_edge_tts(text: str, out_mp3: Path) -> None:
     try:
         for cmd in candidates:
             try:
-                subprocess.run(cmd + base_args, check=True, capture_output=True, text=True)
+                subprocess.run(cmd + base_args, check=True, capture_output=True,
+                               text=True, timeout=600)
                 return
-            except (subprocess.CalledProcessError, FileNotFoundError) as e:
+            except (subprocess.CalledProcessError, FileNotFoundError,
+                    subprocess.TimeoutExpired) as e:
                 last_err = e
         raise RuntimeError(f"edge-tts の実行に失敗しました: {last_err}")
     finally:
         txt.unlink(missing_ok=True)
+
+
+def run_gtts(text: str, out_mp3: Path) -> None:
+    """HTTPのみで動くフォールバックTTS（クラウド環境はWebSocket不可のため）。"""
+    from gtts import gTTS
+    with out_mp3.open("wb") as f:
+        gTTS(text=text, lang="ja").write_to_fp(f)
+
+
+def synthesize(text: str, out_mp3: Path) -> str:
+    """edge-tts優先、失敗したらgTTS。使ったエンジン名を返す。"""
+    try:
+        run_edge_tts(text, out_mp3)
+        return "edge-tts"
+    except Exception as e:
+        print(f"edge-tts失敗、gTTSにフォールバック: {e}", file=sys.stderr)
+    run_gtts(text, out_mp3)
+    return "gtts"
+
+
+def mp3_seconds(path: Path) -> int:
+    try:
+        from mutagen.mp3 import MP3
+        return int(MP3(str(path)).info.length)
+    except Exception:
+        return int(path.stat().st_size * 8 / BITRATE_BPS)
 
 
 def fmt_duration(seconds: int) -> str:
@@ -163,9 +191,10 @@ def main() -> None:
     mp3 = EPISODES_DIR / f"{args.date}.mp3"
 
     print(f"TTS 生成中: {len(text)} 文字 → {mp3.name}")
-    run_edge_tts(text, mp3)
+    engine = synthesize(text, mp3)
     size = mp3.stat().st_size
-    seconds = int(size * 8 / BITRATE_BPS)
+    seconds = mp3_seconds(mp3)
+    print(f"TTSエンジン: {engine}")
 
     # ショーノート（原稿そのもの）も残す
     (EPISODES_DIR / f"{args.date}.md").write_text(raw, encoding="utf-8")
