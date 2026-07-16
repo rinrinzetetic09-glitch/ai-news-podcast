@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>毎朝のAIニュース</title>
+    <link>https://rinrinzetetic09-glitch.github.io/ai-news-podcast/</link>
+    <description>Hacker News・Reddit・はてなブックマークから毎朝収集したAI・Techニュースを音声でお届けする自分専用ポッドキャスト。</description>
+    <language>ja</language>
+    <itunes:author>rinrin</itunes:author>
+    <itunes:image href="https://rinrinzetetic09-glitch.github.io/ai-news-podcast/cover.png"/>
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:category text="News"><itunes:category text="Tech News"/></itunes:category>
+    <atom:link href="https://rinrinzetetic09-glitch.github.io/ai-news-podcast/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>2026-07-16 AIニュース：オープンウェイトLLM「Inkling」登場、クレカ大規模障害ほか</title>
+      <description>Inkling公開、xAIのGrok Buildオープンソース化、Stripe/PayPal買収提案、OpenAI Codex Micro、デロイトのスライド分析、全国クレカ障害など。</description>
+      <pubDate>Thu, 16 Jul 2026 07:00:00 +0900</pubDate>
+      <enclosure url="https://rinrinzetetic09-glitch.github.io/ai-news-podcast/episodes/2026-07-16.mp3" length="2045808" type="audio/mpeg"/>
+      <guid isPermaLink="false">2026-07-16.mp3</guid>
+      <itunes:duration>0:05:40</itunes:duration>
+    </item>
+  </channel>
+</rss>
