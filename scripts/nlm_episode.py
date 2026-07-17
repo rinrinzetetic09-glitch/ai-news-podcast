@@ -28,6 +28,8 @@ NOTEBOOK_ID_FILE = CONFIG_DIR / "notebook_id"
 NTFY_URL = "https://ntfy.sh/rinrin-Antigravity-Secret-517482848100"
 BRANCH = "claude/pages"
 AUDIO_WAIT_MAX_MIN = 30
+DIGEST_WAIT_MAX_MIN = 90   # クラウドの徹底リサーチが終わるまで待つ上限
+DIGEST_POLL_SEC = 300      # digest未着なら5分ごとに再確認
 SOURCE_KEEP_DAYS = 7
 
 os.environ.setdefault("NOTEBOOKLM_HL", "ja")
@@ -121,24 +123,52 @@ def cleanup_old_sources(nb: str, today: str) -> None:
         print(f"古いソースの掃除に失敗（続行）: {e}", file=sys.stderr)
 
 
-def main() -> None:
-    today = datetime.date.today().isoformat()
-
+def sync_branch() -> None:
     sh("git", "fetch", "origin")
     sh("git", "checkout", BRANCH)
     sh("git", "pull", "--ff-only", "origin", BRANCH)
 
-    digest = ROOT / "digests" / f"{today}.md"
-    if not digest.exists():
-        notify("AI News Podcast ⚠️", f"{today} のdigestがまだありません（クラウド側未実行？）")
-        sys.exit(f"digestなし: {digest}")
 
+def already_published(today: str) -> bool:
     manifest = ROOT / "episodes.json"
-    if manifest.exists():
-        for ep in json.loads(manifest.read_text()):
-            if ep["date"] == today and ep.get("type") == "audio/mp4":
-                print("今日の分は公開済み。何もしません。")
-                return
+    if not manifest.exists():
+        return False
+    for ep in json.loads(manifest.read_text()):
+        if ep["date"] == today and ep.get("type") == "audio/mp4":
+            return True
+    return False
+
+
+def wait_for_digest(today: str) -> Path:
+    """クラウドが今日のdigestをpushし終えるまでgitをポーリングして待つ。
+
+    クラウド側の「徹底リサーチ」は所要時間が読めないため、固定時刻で
+    決め打ちせず、digestが claude/pages に現れるのを待ってから音声化する。
+    """
+    digest = ROOT / "digests" / f"{today}.md"
+    deadline = time.time() + DIGEST_WAIT_MAX_MIN * 60
+    while True:
+        sync_branch()
+        if digest.exists():
+            return digest
+        if time.time() >= deadline:
+            notify("AI News Podcast ⚠️",
+                   f"{today} のdigestが{DIGEST_WAIT_MAX_MIN}分待っても来ませんでした"
+                   "（クラウド側が未実行か失敗の可能性）")
+            sys.exit(f"digestなし（タイムアウト）: {digest}")
+        print(f"digest待機中… {digest.name} を{DIGEST_POLL_SEC//60}分後に再確認")
+        time.sleep(DIGEST_POLL_SEC)
+
+
+def main() -> None:
+    today = datetime.date.today().isoformat()
+
+    sync_branch()
+    if already_published(today):
+        print("今日の分は公開済み。何もしません。")
+        return
+
+    digest = wait_for_digest(today)
 
     nb = notebook_id()
 
