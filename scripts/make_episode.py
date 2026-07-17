@@ -103,10 +103,14 @@ def synthesize(text: str, out_mp3: Path) -> str:
 
 def mp3_seconds(path: Path) -> int:
     try:
-        from mutagen.mp3 import MP3
-        return int(MP3(str(path)).info.length)
+        import mutagen
+        info = mutagen.File(str(path))
+        return int(info.info.length)
     except Exception:
         return int(path.stat().st_size * 8 / BITRATE_BPS)
+
+
+MIME_TYPES = {".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".wav": "audio/wav"}
 
 
 def fmt_duration(seconds: int) -> str:
@@ -136,7 +140,7 @@ def build_feed(episodes: list) -> str:
       <title>{html.escape(ep["title"])}</title>
       <description>{desc}</description>
       <pubDate>{rfc2822(ep["date"])}</pubDate>
-      <enclosure url="{BASE_URL}/episodes/{ep["file"]}" length="{ep["bytes"]}" type="audio/mpeg"/>
+      <enclosure url="{BASE_URL}/episodes/{ep["file"]}" length="{ep["bytes"]}" type="{ep.get("type", "audio/mpeg")}"/>
       <guid isPermaLink="false">{ep["file"]}</guid>
       <itunes:duration>{fmt_duration(ep["seconds"])}</itunes:duration>
     </item>""")
@@ -174,46 +178,64 @@ def prune_old(episodes: list) -> list:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("script_file", help="読み上げる原稿 (txt/md)")
+    ap.add_argument("script_file", help="原稿/ショーノート (txt/md)")
     ap.add_argument("--date", default=datetime.date.today().isoformat())
     ap.add_argument("--title", default=None)
     ap.add_argument("--description", default=None)
+    ap.add_argument("--audio", default=None,
+                    help="既存の音声ファイル (m4a/mp3等)。指定時はTTSせずこれを使う")
     args = ap.parse_args()
 
     src = Path(args.script_file)
     raw = src.read_text(encoding="utf-8")
-    text = clean_for_tts(raw)
-    if not text:
-        sys.exit("原稿が空です")
 
     title = args.title or f"{args.date} AIニュース"
     EPISODES_DIR.mkdir(exist_ok=True)
-    mp3 = EPISODES_DIR / f"{args.date}.mp3"
 
-    print(f"TTS 生成中: {len(text)} 文字 → {mp3.name}")
-    engine = synthesize(text, mp3)
-    size = mp3.stat().st_size
-    seconds = mp3_seconds(mp3)
-    print(f"TTSエンジン: {engine}")
+    if args.audio:
+        audio_src = Path(args.audio)
+        ext = audio_src.suffix.lower()
+        if ext not in MIME_TYPES:
+            sys.exit(f"未対応の音声形式です: {ext}")
+        audio = EPISODES_DIR / f"{args.date}{ext}"
+        shutil.copyfile(audio_src, audio)
+        print(f"音声を取り込み: {audio_src} → {audio.name}")
+    else:
+        text = clean_for_tts(raw)
+        if not text:
+            sys.exit("原稿が空です")
+        audio = EPISODES_DIR / f"{args.date}.mp3"
+        print(f"TTS 生成中: {len(text)} 文字 → {audio.name}")
+        engine = synthesize(text, audio)
+        print(f"TTSエンジン: {engine}")
+
+    size = audio.stat().st_size
+    seconds = mp3_seconds(audio)
 
     # ショーノート（原稿そのもの）も残す
     (EPISODES_DIR / f"{args.date}.md").write_text(raw, encoding="utf-8")
 
-    episodes = [e for e in load_manifest() if e["date"] != args.date]
+    episodes = load_manifest()
+    # 同日の旧エピソード（拡張子違いを含む）を削除
+    for e in episodes:
+        if e["date"] == args.date and e["file"] != audio.name:
+            (EPISODES_DIR / e["file"]).unlink(missing_ok=True)
+    episodes = [e for e in episodes if e["date"] != args.date]
     episodes.append({
         "date": args.date,
         "title": title,
         "description": args.description or f"{args.date} のAI・Techニュースまとめ。",
-        "file": mp3.name,
+        "file": audio.name,
         "bytes": size,
         "seconds": seconds,
+        "type": MIME_TYPES[audio.suffix.lower()],
     })
     episodes.sort(key=lambda e: e["date"], reverse=True)
     episodes = prune_old(episodes)
 
     MANIFEST.write_text(json.dumps(episodes, ensure_ascii=False, indent=2), encoding="utf-8")
     FEED.write_text(build_feed(episodes), encoding="utf-8")
-    print(f"完了: {mp3} ({size/1e6:.1f} MB, 約{seconds//60}分) / feed.xml 更新済み")
+    print(f"完了: {audio} ({size/1e6:.1f} MB, 約{seconds//60}分) / feed.xml 更新済み")
 
 
 if __name__ == "__main__":
