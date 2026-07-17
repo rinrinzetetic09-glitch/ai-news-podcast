@@ -26,13 +26,21 @@ pushできる認証があることを確認する（`gh auth status`。未認証
 アップロードするので、gh は **repo スコープ付きで認証済み**である必要がある
 （`gh release upload` が通ること）。
 
-### 2. nlm CLI のインストール
+### 2. nlm CLI と ffmpeg のインストール
 
 ```bash
 # uvがなければ: curl -LsSf https://astral.sh/uv/install.sh | sh
 uv tool install notebooklm-mcp-cli
 nlm --version
+
+# ffmpeg（各エピソード冒頭にオープニング音源 assets/ai-news_opening.mp3 を
+# 連結するために必要）。Homebrewが無ければ https://brew.sh から入れる。
+brew install ffmpeg
+ffmpeg -version | head -1
 ```
+
+ffmpegが無い場合、エピソードは公開されるがオープニングは付かない（スキップして
+続行し、警告を出す）。オープニングを必ず付けたいなら ffmpeg を入れておくこと。
 
 ### 3. NotebookLMへのログイン【ユーザーの手作業】
 

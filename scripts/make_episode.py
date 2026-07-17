@@ -38,6 +38,7 @@ ROOT = Path(__file__).resolve().parent.parent
 EPISODES_DIR = ROOT / "episodes"
 MANIFEST = ROOT / "episodes.json"
 FEED = ROOT / "feed.xml"
+OPENING = ROOT / "assets" / "ai-news_opening.mp3"   # 各エピソード冒頭に繋ぐ音源
 
 
 def clean_for_tts(text: str) -> str:
@@ -114,6 +115,38 @@ def mp3_seconds(path: Path) -> int:
 
 
 MIME_TYPES = {".mp3": "audio/mpeg", ".m4a": "audio/mp4", ".wav": "audio/wav"}
+
+
+def prepend_opening(audio: Path, workdir: Path, date: str) -> Path:
+    """オープニング音源を頭に繋げた m4a を返す。
+
+    ffmpeg が必要。オープニングが無い / ffmpeg が無い / 連結失敗のときは
+    パイプラインを止めず、元の音声をそのまま返す（オープニング無しで続行）。
+    """
+    if not OPENING.exists():
+        print(f"オープニング音源が無いのでスキップ: {OPENING}", file=sys.stderr)
+        return audio
+    if not shutil.which("ffmpeg"):
+        print("ffmpegが無いのでオープニングをスキップ（要インストール）", file=sys.stderr)
+        return audio
+    outdir = workdir / "combined"      # 入力(audio)と同名衝突を避ける
+    outdir.mkdir(exist_ok=True)
+    out = outdir / f"{date}.m4a"
+    # 両者を 44.1kHz / stereo に揃えてから連結し、AAC(m4a) で書き出す
+    cmd = [
+        "ffmpeg", "-y", "-i", str(OPENING), "-i", str(audio),
+        "-filter_complex",
+        "[0:a]aformat=sample_rates=44100:channel_layouts=stereo[a0];"
+        "[1:a]aformat=sample_rates=44100:channel_layouts=stereo[a1];"
+        "[a0][a1]concat=n=2:v=0:a=1[out]",
+        "-map", "[out]", "-c:a", "aac", "-b:a", "128k", str(out),
+    ]
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode != 0 or not out.exists():
+        print(f"オープニング連結に失敗、元音声を使用: {r.stderr[-300:]}", file=sys.stderr)
+        return audio
+    print("オープニングを冒頭に連結しました")
+    return out
 
 
 def gh(*args: str) -> subprocess.CompletedProcess:
@@ -224,6 +257,8 @@ def main() -> None:
     ap.add_argument("--description", default=None)
     ap.add_argument("--audio", default=None,
                     help="既存の音声ファイル (m4a/mp3等)。指定時はTTSせずこれを使う")
+    ap.add_argument("--no-opening", action="store_true",
+                    help="冒頭のオープニング音源を連結しない")
     args = ap.parse_args()
 
     src = Path(args.script_file)
@@ -250,6 +285,9 @@ def main() -> None:
             print(f"TTS 生成中: {len(text)} 文字 → {audio.name}")
             engine = synthesize(text, audio)
             print(f"TTSエンジン: {engine}")
+
+        if not args.no_opening:
+            audio = prepend_opening(audio, Path(td), args.date)
 
         size = audio.stat().st_size
         seconds = mp3_seconds(audio)
