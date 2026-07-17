@@ -22,7 +22,9 @@ git clone https://github.com/rinrinzetetic09-glitch/ai-news-podcast.git ~/coding
 ```
 
 pushできる認証があることを確認する（`gh auth status`。未認証ならユーザーに
-`gh auth login` を実行してもらう）。
+`gh auth login` を実行してもらう）。音声ファイルは GitHub Releases に
+アップロードするので、gh は **repo スコープ付きで認証済み**である必要がある
+（`gh release upload` が通ること）。
 
 ### 2. nlm CLI のインストール
 
@@ -74,8 +76,17 @@ python3 scripts/nlm_episode.py
 - 今日のdigestが未生成の時間帯なら「digestがまだありません」で正常
 - 成功すると feed.xml に今日の .m4a エピソードが載り、ntfyに通知が届く
 
+## 音声の保存先（重要）
+
+音声（m4a）は**リポジトリ本体には入れず、GitHub Releases（タグ `episodes`）の
+添付ファイルとして保存**する。理由はリポジトリ容量とgit履歴の肥大化を避けるため。
+`make_episode.py` が自動でReleaseへアップロードし、フィードのenclosure URLを
+Releaseのダウンロードリンクにする。リポジトリにはテキスト（feed.xml・
+episodes.json・ショーノートmd）だけが残るので、いくら日が経っても軽いまま。
+古い音声（既定90日超）はRelease添付ごと自動削除される。
+
 ## 二重実行に注意
 
 音声生成タスクを動かすマシンは**1台だけ**にする。他のマシンに同じ
-スケジュールタスクが残っていると、同時実行時にgit pushが衝突する。
-移行したら旧マシン側のタスクを削除すること。
+スケジュールタスクが残っていると、同時実行時にgit push / Releaseアップロードが
+衝突する。移行したら旧マシン側のタスクを削除すること。
