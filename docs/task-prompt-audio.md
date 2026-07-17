@@ -18,3 +18,4 @@
 - 使用しているnlm CLI（notebooklm-mcp-cli）は非公式ツールで、専用の捨てGoogleアカウントで運用している。CAPTCHAやログイン画面の突破を自動化してはいけない。
 - リポジトリのclaude/pagesブランチが配信ブランチ。mainにはスクリプト修正のみ。PRは作らない。
 - 音声（m4a）はリポジトリに入れず GitHub Releases（タグ episodes）へアップロードされる（make_episode.pyが自動でやる）。そのため gh が repo スコープで認証済みであること。`gh release upload` が権限エラーで失敗したら、ntfyとユーザー報告で「gh auth を確認してほしい」と知らせる。
+- 各エピソードは冒頭に assets/ai-news_opening.mp3（ラジオオープニング）が自動で連結される（make_episode.pyがffmpegで実施）。ffmpegが入っていないとオープニング無しで公開される。ログに「ffmpegが無いのでオープニングをスキップ」が出ていたら、ユーザーに `brew install ffmpeg` を勧める（パイプライン自体は止めない）。
