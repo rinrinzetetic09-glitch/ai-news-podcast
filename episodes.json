@@ -1,11 +1,13 @@
 [
   {
     "date": "2026-07-17",
-    "title": "2026-07-17 AIニュース：オープンウェイトモデル「Inkling」始動、声の無断利用に法務省が指針",
-    "description": "シンキング・マシーンズの新モデルInkling、xAIのGrok Buildオープン化、声優AIの無断利用に法務省が人格権侵害の指針案、ZOZOのAI工数削減効果、全国的なクレカ決済障害など。",
-    "file": "2026-07-17.mp3",
-    "bytes": 4434048,
-    "seconds": 554
+    "title": "2026-07-17 AIニュース（オープニング入りテスト）：オープンウェイトモデル「Inkling」始動、声の無断利用に法務省が指針",
+    "description": "【オープニング音源の試験配信】シンキング・マシーンズの新モデルInkling、xAIのGrok Buildオープン化、声優AIの無断利用に法務省が人格権侵害の指針案、ZOZOのAI工数削減効果など。",
+    "file": "2026-07-17.m4a",
+    "url": "https://github.com/rinrinzetetic09-glitch/ai-news-podcast/releases/download/episodes/2026-07-17.m4a",
+    "bytes": 9201069,
+    "seconds": 565,
+    "type": "audio/mp4"
   },
   {
     "date": "2026-07-16",
