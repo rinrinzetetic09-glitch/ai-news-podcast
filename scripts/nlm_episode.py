@@ -116,7 +116,7 @@ def cleanup_old_sources(nb: str, today: str) -> None:
             m = re.match(r"(\d{4}-\d{2}-\d{2})", title)
             if m and m.group(1) < cutoff:
                 sid = find_id(s, "source_id", "id", "sourceId")
-                sh("nlm", "delete", "source", nb, sid, check=False)
+                sh("nlm", "delete", "source", sid, "-y", check=False)
     except Exception as e:
         print(f"古いソースの掃除に失敗（続行）: {e}", file=sys.stderr)
 
@@ -182,7 +182,7 @@ def main() -> None:
     sh("git", "push", "origin", BRANCH)
 
     if artifact_id:
-        sh("nlm", "delete", "artifact", nb, artifact_id, check=False)
+        sh("nlm", "delete", "artifact", nb, artifact_id, "-y", check=False)
     cleanup_old_sources(nb, today)
 
     notify("AI News Podcast 🎙", f"{today} のラジオ版エピソードを公開しました")
