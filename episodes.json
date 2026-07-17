@@ -1,5 +1,15 @@
 [
   {
+    "date": "2026-07-18",
+    "title": "2026-07-18 毎朝のAIニュース（ラジオ解説）",
+    "description": "2026-07-18 のAI・Techニュースを対話形式で解説。",
+    "file": "2026-07-18.m4a",
+    "url": "https://github.com/rinrinzetetic09-glitch/ai-news-podcast/releases/download/episodes/2026-07-18.m4a",
+    "bytes": 17190064,
+    "seconds": 2865,
+    "type": "audio/mp4"
+  },
+  {
     "date": "2026-07-17",
     "title": "2026-07-17 AIニュース（オープニング入りテスト）：オープンウェイトモデル「Inkling」始動、声の無断利用に法務省が指針",
     "description": "【オープニング音源の試験配信】シンキング・マシーンズの新モデルInkling、xAIのGrok Buildオープン化、声優AIの無断利用に法務省が人格権侵害の指針案、ZOZOのAI工数削減効果など。",
