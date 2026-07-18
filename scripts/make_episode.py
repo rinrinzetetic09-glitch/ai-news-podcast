@@ -106,11 +106,22 @@ def synthesize(text: str, out_mp3: Path) -> str:
 
 
 def mp3_seconds(path: Path) -> int:
+    if shutil.which("ffprobe"):
+        try:
+            out = subprocess.run(
+                ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                 "-of", "default=noprint_wrappers=1:nokey=1", str(path)],
+                capture_output=True, text=True, check=True,
+            ).stdout.strip()
+            return int(float(out))
+        except Exception as e:
+            print(f"ffprobeで長さ取得失敗: {e}", file=sys.stderr)
     try:
         import mutagen
         info = mutagen.File(str(path))
         return int(info.info.length)
     except Exception:
+        # 最終手段の概算。edge-tts(48kbps)以外の音声では大きくずれる
         return int(path.stat().st_size * 8 / BITRATE_BPS)
 
 
