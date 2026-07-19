@@ -11,6 +11,14 @@
     <itunes:category text="News"><itunes:category text="Tech News"/></itunes:category>
     <atom:link href="https://rinrinzetetic09-glitch.github.io/ai-news-podcast/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
+      <title>2026-07-20 毎朝のAIニュース（ラジオ解説）</title>
+      <description>2026-07-20 のAI・Techニュースを対話形式で解説。</description>
+      <pubDate>Mon, 20 Jul 2026 07:00:00 +0900</pubDate>
+      <enclosure url="https://pub-4dbb7ec60a80442e8a73332e9fa2a690.r2.dev/2026-07-20.m4a" length="18403160" type="audio/mp4"/>
+      <guid isPermaLink="false">2026-07-20.m4a</guid>
+      <itunes:duration>0:19:02</itunes:duration>
+    </item>
+    <item>
       <title>2026-07-19 毎朝のAIニュース（ラジオ解説）</title>
       <description>2026-07-19 のAI・Techニュースを対話形式で解説。</description>
       <pubDate>Sun, 19 Jul 2026 07:00:00 +0900</pubDate>
