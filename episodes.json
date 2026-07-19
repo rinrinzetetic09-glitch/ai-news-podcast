@@ -4,7 +4,7 @@
     "title": "2026-07-19 毎朝のAIニュース（ラジオ解説）",
     "description": "2026-07-19 のAI・Techニュースを対話形式で解説。",
     "file": "2026-07-19.m4a",
-    "url": "https://github.com/rinrinzetetic09-glitch/ai-news-podcast/releases/download/episodes/2026-07-19.m4a",
+    "url": "https://pub-4dbb7ec60a80442e8a73332e9fa2a690.r2.dev/2026-07-19.m4a",
     "bytes": 21544832,
     "seconds": 1333,
     "type": "audio/mp4"
@@ -14,9 +14,9 @@
     "title": "2026-07-18 毎朝のAIニュース（ラジオ解説）",
     "description": "2026-07-18 のAI・Techニュースを対話形式で解説。",
     "file": "2026-07-18.m4a",
-    "url": "https://github.com/rinrinzetetic09-glitch/ai-news-podcast/releases/download/episodes/2026-07-18.m4a",
+    "url": "https://pub-4dbb7ec60a80442e8a73332e9fa2a690.r2.dev/2026-07-18.m4a",
     "bytes": 17190064,
-    "seconds": 2865,
+    "seconds": 1067,
     "type": "audio/mp4"
   },
   {
@@ -24,7 +24,7 @@
     "title": "2026-07-17 AIニュース（オープニング入りテスト）：オープンウェイトモデル「Inkling」始動、声の無断利用に法務省が指針",
     "description": "【オープニング音源の試験配信】シンキング・マシーンズの新モデルInkling、xAIのGrok Buildオープン化、声優AIの無断利用に法務省が人格権侵害の指針案、ZOZOのAI工数削減効果など。",
     "file": "2026-07-17.m4a",
-    "url": "https://github.com/rinrinzetetic09-glitch/ai-news-podcast/releases/download/episodes/2026-07-17.m4a",
+    "url": "https://pub-4dbb7ec60a80442e8a73332e9fa2a690.r2.dev/2026-07-17.m4a",
     "bytes": 9201069,
     "seconds": 565,
     "type": "audio/mp4"
@@ -35,6 +35,8 @@
     "description": "Inkling公開、xAIのGrok Buildオープンソース化、Stripe/PayPal買収提案、OpenAI Codex Micro、デロイトのスライド分析、全国クレカ障害など。",
     "file": "2026-07-16.mp3",
     "bytes": 2045808,
-    "seconds": 340
+    "seconds": 340,
+    "url": "https://pub-4dbb7ec60a80442e8a73332e9fa2a690.r2.dev/2026-07-16.mp3",
+    "type": "audio/mpeg"
   }
 ]
