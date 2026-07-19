@@ -22,7 +22,10 @@ from pathlib import Path
 # ---- 設定 -------------------------------------------------------------
 BASE_URL = "https://rinrinzetetic09-glitch.github.io/ai-news-podcast"
 REPO = "rinrinzetetic09-glitch/ai-news-podcast"
-RELEASE_TAG = "episodes"   # 音声はこのReleaseに添付する（リポジトリ本体に貯めない）
+# 音声は Cloudflare R2 に置く（egress無料・リダイレクト無しで安定配信）
+R2_BUCKET = "ai-news-podcast"
+R2_PUBLIC_BASE = "https://pub-4dbb7ec60a80442e8a73332e9fa2a690.r2.dev"
+R2_ENV_FILE = Path.home() / ".config" / "ai-news-podcast" / "r2.env"
 PODCAST_TITLE = "毎朝のAIニュース"
 PODCAST_DESCRIPTION = "Hacker News・Reddit・はてなブックマークから毎朝収集したAI・Techニュースを音声でお届けする自分専用ポッドキャスト。"
 PODCAST_AUTHOR = "rinrin"
@@ -31,7 +34,7 @@ VOICE = "ja-JP-NanamiNeural"
 RATE = "+8%"          # わずかに早口（ポッドキャストアプリ側でも倍速可能）
 BITRATE_BPS = 48000    # edge-tts 既定 (audio-24khz-48kbitrate-mono-mp3)
 FEED_EPISODE_LIMIT = 30   # feed.xml に載せる最新エピソード数
-KEEP_DAYS = 90            # これより古い音声（Release添付）は削除
+KEEP_DAYS = 90            # これより古い音声（R2上のオブジェクト）は削除
 # -----------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -160,38 +163,40 @@ def prepend_opening(audio: Path, workdir: Path, date: str) -> Path:
     return out
 
 
-def gh(*args: str) -> subprocess.CompletedProcess:
-    return subprocess.run(["gh", *args, "-R", REPO],
-                          capture_output=True, text=True)
+def r2_env() -> dict:
+    """R2認証情報（APIトークン等）を環境変数に足したenvを返す。"""
+    import os
+    env = dict(os.environ)
+    if R2_ENV_FILE.exists():
+        for line in R2_ENV_FILE.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, _, v = line.partition("=")
+                env[k] = v
+    return env
 
 
-def ensure_release() -> None:
-    """音声置き場の Release（タグ RELEASE_TAG）が無ければ作る。"""
-    if gh("release", "view", RELEASE_TAG).returncode == 0:
-        return
-    r = gh("release", "create", RELEASE_TAG,
-           "-t", "Podcast audio",
-           "-n", "毎朝のAIニュース ポッドキャストの音声ファイル置き場。"
-                 "リポジトリ肥大化を避けるため音声はここ（Releasesの添付）に保存する。")
-    if r.returncode != 0:
-        raise RuntimeError(f"Release作成に失敗: {r.stderr}")
+def wrangler(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["npx", "--yes", "wrangler", *args],
+                          capture_output=True, text=True, env=r2_env())
 
 
 def upload_audio(audio: Path) -> str:
-    """音声を Release に添付し、その公開ダウンロードURLを返す。"""
-    ensure_release()
-    r = gh("release", "upload", RELEASE_TAG, str(audio), "--clobber")
+    """音声を R2 にアップロードし、公開URLを返す。"""
+    mime = MIME_TYPES[audio.suffix.lower()]
+    r = wrangler("r2", "object", "put", f"{R2_BUCKET}/{audio.name}",
+                 "--file", str(audio), "--content-type", mime, "--remote")
     if r.returncode != 0:
         raise RuntimeError(f"音声アップロードに失敗: {r.stderr}")
-    return f"https://github.com/{REPO}/releases/download/{RELEASE_TAG}/{audio.name}"
+    return f"{R2_PUBLIC_BASE}/{audio.name}"
 
 
 def delete_asset(name: str) -> None:
-    gh("release", "delete-asset", RELEASE_TAG, name, "-y")
+    wrangler("r2", "object", "delete", f"{R2_BUCKET}/{name}", "--remote")
 
 
 def enclosure_url(ep: dict) -> str:
-    # 新方式は Release のURLを保存。旧エピソード（Pages配下のmp3）は従来URL。
+    # 新方式は R2 のURLを保存。旧エピソード（Pages配下のmp3）は従来URL。
     return ep.get("url") or f"{BASE_URL}/episodes/{ep['file']}"
 
 
@@ -251,7 +256,7 @@ def prune_old(episodes: list) -> list:
     for ep in episodes:
         if ep["date"] < cutoff:
             if ep.get("url"):
-                delete_asset(ep["file"])          # Release添付を削除
+                delete_asset(ep["file"])          # R2オブジェクトを削除
             else:
                 (EPISODES_DIR / ep["file"]).unlink(missing_ok=True)  # 旧Pages配下mp3
             (EPISODES_DIR / f"{ep['date']}.md").unlink(missing_ok=True)
@@ -278,7 +283,7 @@ def main() -> None:
     title = args.title or f"{args.date} AIニュース"
     EPISODES_DIR.mkdir(exist_ok=True)
 
-    # 音声は tmp に作り、Releaseへアップロードする（リポジトリ本体には貯めない）
+    # 音声は tmp に作り、R2へアップロードする（リポジトリ本体には貯めない）
     with tempfile.TemporaryDirectory() as td:
         if args.audio:
             audio_src = Path(args.audio)
@@ -302,7 +307,7 @@ def main() -> None:
 
         size = audio.stat().st_size
         seconds = mp3_seconds(audio)
-        print(f"音声をReleaseへアップロード中… ({size/1e6:.1f} MB)")
+        print(f"音声をR2へアップロード中… ({size/1e6:.1f} MB)")
         url = upload_audio(audio)
         asset_name = audio.name
         mime = MIME_TYPES[audio.suffix.lower()]
@@ -311,7 +316,7 @@ def main() -> None:
     (EPISODES_DIR / f"{args.date}.md").write_text(raw, encoding="utf-8")
 
     episodes = load_manifest()
-    # 同日の旧エピソード（拡張子違い）のRelease添付を掃除
+    # 同日の旧エピソード（拡張子違い）のR2オブジェクトを掃除
     for e in episodes:
         if e["date"] == args.date and e["file"] != asset_name and e.get("url"):
             delete_asset(e["file"])
