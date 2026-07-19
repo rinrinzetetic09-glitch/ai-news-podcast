@@ -11,12 +11,20 @@
     <itunes:category text="News"><itunes:category text="Tech News"/></itunes:category>
     <atom:link href="https://rinrinzetetic09-glitch.github.io/ai-news-podcast/feed.xml" rel="self" type="application/rss+xml"/>
     <item>
+      <title>2026-07-19 毎朝のAIニュース（ラジオ解説）</title>
+      <description>2026-07-19 のAI・Techニュースを対話形式で解説。</description>
+      <pubDate>Sun, 19 Jul 2026 07:00:00 +0900</pubDate>
+      <enclosure url="https://github.com/rinrinzetetic09-glitch/ai-news-podcast/releases/download/episodes/2026-07-19.m4a" length="21544832" type="audio/mp4"/>
+      <guid isPermaLink="false">2026-07-19.m4a</guid>
+      <itunes:duration>0:22:13</itunes:duration>
+    </item>
+    <item>
       <title>2026-07-18 毎朝のAIニュース（ラジオ解説）</title>
       <description>2026-07-18 のAI・Techニュースを対話形式で解説。</description>
       <pubDate>Sat, 18 Jul 2026 07:00:00 +0900</pubDate>
       <enclosure url="https://github.com/rinrinzetetic09-glitch/ai-news-podcast/releases/download/episodes/2026-07-18.m4a" length="17190064" type="audio/mp4"/>
       <guid isPermaLink="false">2026-07-18.m4a</guid>
-      <itunes:duration>0:17:47</itunes:duration>
+      <itunes:duration>0:47:45</itunes:duration>
     </item>
     <item>
       <title>2026-07-17 AIニュース（オープニング入りテスト）：オープンウェイトモデル「Inkling」始動、声の無断利用に法務省が指針</title>
