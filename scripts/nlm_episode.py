@@ -4,7 +4,7 @@
 毎朝クラウドルーティーンが digests/YYYY-MM-DD.md をpushしている前提で、
 1. リポジトリを claude/pages に同期
 2. 今日の digest を NotebookLM にソース追加（nlm CLI・要ログイン済み）
-3. 音声解説（日本語・deep_dive・long）を生成して .m4a をダウンロード
+3. 音声解説（日本語・deep_dive・long、focusは docs/audio-overview-prompt.md）を生成して .m4a をダウンロード
 4. make_episode.py --audio でフィード更新 → コミット & push
 5. ntfy へ結果通知
 までを行う。冪等：今日の分が公開済みなら何もしない。
@@ -25,6 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_DIR = Path.home() / ".config" / "ai-news-podcast"
 NOTEBOOK_ID_FILE = CONFIG_DIR / "notebook_id"
+AUDIO_OVERVIEW_PROMPT_FILE = ROOT / "docs" / "audio-overview-prompt.md"
 NTFY_URL = "https://ntfy.sh/rinrin-Antigravity-Secret-517482848100"
 BRANCH = "claude/pages"
 AUDIO_WAIT_MAX_MIN = 30
@@ -178,12 +179,11 @@ def main() -> None:
     source_id = find_id(src, "source_id", "id", "sourceId")
 
     print("音声解説を生成中…")
+    focus = AUDIO_OVERVIEW_PROMPT_FILE.read_text(encoding="utf-8").strip()
     art = nlm_json("audio", "create", nb,
                    "--format", "deep_dive", "--length", "long",
                    "--language", "ja",
-                   "--focus", "今日のAIニュース全体を、重要な順にラジオ番組として解説。"
-                              "AI倫理・AI規制・Anthropic・AIエージェント・AIと人間の"
-                              "価値や労働の話題は特に深く。",
+                   "--focus", focus,
                    "-s", source_id, "--confirm")
     try:
         artifact_id = find_id(art, "artifact_id", "id", "artifactId", "task_id")
