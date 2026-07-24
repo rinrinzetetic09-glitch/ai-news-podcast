@@ -12,6 +12,7 @@
 前提: `uv tool install notebooklm-mcp-cli` 済みで `nlm login` 済み。
 """
 
+import argparse
 import datetime
 import json
 import os
@@ -162,7 +163,10 @@ def wait_for_digest(today: str) -> Path:
 
 
 def main() -> None:
-    today = datetime.date.today().isoformat()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--date", help="対象日 YYYY-MM-DD（省略時は今日。既存digestの後追い生成に使用）")
+    args = parser.parse_args()
+    today = args.date or datetime.date.today().isoformat()
 
     sync_branch()
     if already_published(today):
